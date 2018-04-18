@@ -122,7 +122,7 @@ def fitness_func_adv(nets, config):
         fitness = max_altiude
         if reached_basic:
             fitness = ((orbit_energy - starting_energy) / (10 ** 3)) + max_altiude
-        fitness = fitness / (1 + vessel.orbit.eccentricity)
+        fitness = fitness / (1 + (3 * vessel.orbit.eccentricity))
             
         #remove telemetry streams
         altitude.remove()
@@ -201,13 +201,13 @@ if __name__ == '__main__':
     connection = krpc.connect()
     print("connected")
     p = new_pop()
-    #p = return_population("10") # Saved
+    #p = return_population("a00") # Saved
     
     for i in range(10):
         winner = p.run(fitness_func_adv, 5) # Run
-        save_object(("a" + str(i) + "0"), p) # prefix as first argument
+        save_object(("b" + str(i) + "0"), p) # prefix as first argument
         winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
-        save_object(("a" + str(i) + "0_best"), winner_net) # This saves the winner as "X0 - best" where X is current loop iter
+        save_object(("b" + str(i) + "0_best"), winner_net) # This saves the winner as "X0 - best" where X is current loop iter
 
     # To load and visualize a vessel
     # loaded_net = return_population("NAME") # Replace NAME with object name
