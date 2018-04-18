@@ -15,10 +15,10 @@ def create_new_ship():
     return vessel
 
 def fitness_func(nets, config):
-	# global times
+    # global times
     # For each genome in 'nets' create a Neural Network
     for genome_id, genome in nets:
-    	# times += 1
+        # times += 1
 
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         vessel = create_new_ship() # Create a new ship
@@ -32,6 +32,7 @@ def fitness_func(nets, config):
         
         launch_time = universal_time()
         last_altitude = altitude()
+        max_altiude = 0
         warnings = 0
         vessel.control.activate_next_stage()
         print("[" + str(universal_time()) + "]:\tLiftoff")
@@ -41,14 +42,13 @@ def fitness_func(nets, config):
         while in_flight and ((universal_time() - launch_time) < 200):
             # Error Check for crash
             current_altitude = altitude()
-            last_altitude = current_altitude + 5
 
-            if (current_altitude - last_altitude < 5):
+            if (current_altitude - last_altitude < 2):
                 print("WARNING")
                 warnings += 1
             else:
                 warnings = max(0, warnings - 1)
-            if (warnings > 10):
+            if (warnings > 20):
                 print("FAILURE")
                 in_flight = False
             
@@ -60,11 +60,13 @@ def fitness_func(nets, config):
             vessel.control.yaw = actions[2]
             vessel.control.roll = actions[3]
 
+            max_altiude = max(current_altitude, max_altiude)
+
             if current_altitude >= 70000:
                 break
-        fitness = current_altitude
-        if reached_basic:
-            fitness = get_altitude + delta_v(vessel)
+        fitness = max_altiude
+        # if reached_basic:
+        #     fitness = get_altitude + delta_v(vessel)
         #remove telemetry streams
         altitude.remove()
         universal_time.remove()
