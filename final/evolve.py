@@ -4,6 +4,27 @@ import pickle
 import krpc
 import time
 
+def new_pop():
+    # Creates a new population p
+    p = neat.Population(config)
+    # Add statistics to pretty print progress
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    return p
+
+
+def save_object(prefix, pop):
+    pickle.dump(copy.deepcopy(p), open(prefix + '.pkl', 'wb'))
+def return_population(prefix):
+    loaded = pickle.load(open(prefix + '.pkl', 'rb'))
+    return loaded
+def delete_population(prefix):
+    try:
+        os.remove(prefix + '.pkl')
+    except FileNotFoundError:
+        print('Not found')
+
 def create_new_ship():
     global connection
     print("========== New Voyage ===========")
@@ -101,25 +122,4 @@ if __name__ == '__main__':
     winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
     save_object("winner_net_10", winner_net) # prefix as first argument
 
-
-def new_pop():
-    # Creates a new population p
-    p = neat.Population(config)
-    # Add statistics to pretty print progress
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
-    return p
-
-
-def save_object(prefix, pop):
-    pickle.dump(copy.deepcopy(p), open(prefix + '.pkl', 'wb'))
-def return_population(prefix):
-    loaded = pickle.load(open(prefix + '.pkl', 'rb'))
-    return loaded
-def delete_population(prefix):
-    try:
-        os.remove(prefix + '.pkl')
-    except FileNotFoundError:
-        print('Not found')
 
