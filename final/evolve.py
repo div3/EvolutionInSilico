@@ -85,25 +85,34 @@ config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
 
 # times = 0
 
-print("running...")
-#connect
-connection = krpc.connect()
-print("connected")
+# Change prefix before running to avoid overwriting.
+if __name__ == '__main__':
+    print("running...")
+    #connect
+    connection = krpc.connect()
+    print("connected")
+    p = new_pop()
+    # p = return_population("10") # Saved
 
-# Creates a new population p
-p = neat.Population(config)
-# Add statistics to pretty print progress
-p.add_reporter(neat.StdOutReporter(True))
-stats = neat.StatisticsReporter()
-p.add_reporter(stats)
+    winner = p.run(fitness_func, 10) # Run 
 
-winner = p.run(fitness_func, 10) # Run 
+    save_object("10", p) # prefix as first argument
 
-save_population("10", p) # prefix as first argument
+    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+    save_object("winner_net_10", winner_net) # prefix as first argument
 
-winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
 
-def save_population(prefix, pop):
+def new_pop():
+    # Creates a new population p
+    p = neat.Population(config)
+    # Add statistics to pretty print progress
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    return p
+
+
+def save_object(prefix, pop):
     pickle.dump(copy.deepcopy(p), open(prefix + '.pkl', 'wb'))
 def return_population(prefix):
     loaded = pickle.load(open(prefix + '.pkl', 'rb'))
