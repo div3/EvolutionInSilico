@@ -97,7 +97,9 @@ p.add_reporter(neat.StdOutReporter(True))
 stats = neat.StatisticsReporter()
 p.add_reporter(stats)
 
-winner = p.run(fitness_func, 5) # Run 
+winner = p.run(fitness_func, 10) # Run 
+
+save_population("10", p) # prefix as first argument
 
 winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
 
