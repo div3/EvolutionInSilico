@@ -58,8 +58,14 @@ def fitness_func_adv(nets, config):
         telemetry_heading = connection.add_stream(getattr, vessel.flight(), 'heading')
         telemetry_roll = connection.add_stream(getattr, vessel.flight(), 'roll')
 
+        srf = vessel.orbit.body.reference_frame
+        telemetry_speed = connection.add_stream(getattr, vessel.flight(srf), 'speed')
+        
+
         apoapsis = connection.add_stream(getattr, vessel.orbit, "apoapsis_altitude")
         periapsis = connection.add_stream(getattr, vessel.orbit, "periapsis_altitude")
+
+        
         
         launch_time = universal_time()
         last_altitude = altitude()
@@ -69,7 +75,7 @@ def fitness_func_adv(nets, config):
         starting_energy = (connection.space_center.g * vessel.mass *\
                 connection.space_center.bodies["Kerbin"].mass) /\
                 vessel.orbit.radius
-        print("energy: " + str(starting_energy))
+        
         print("[" + str(universal_time()) + "]:\tLiftoff")
 
         reached_basic = False
@@ -87,7 +93,12 @@ def fitness_func_adv(nets, config):
                 #print("FAILURE")
                 in_flight = False
             
-            inputs = [current_altitude, telemetry_pitch(), telemetry_heading(), telemetry_roll()]
+            inputs = [current_altitude,\
+                      telemetry_speed(),\
+                      telemetry_pitch(),\
+                      telemetry_heading(),\
+                      telemetry_roll()]
+            
             actions = net.activate(inputs) # Activate using inputs
             #perform actions
             vessel.control.throttle = actions[0]
@@ -111,6 +122,7 @@ def fitness_func_adv(nets, config):
         fitness = max_altiude
         if reached_basic:
             fitness = ((orbit_energy - starting_energy) / (10 ** 3)) + max_altiude
+        fitness = fitness / (1 + vessel.orbit.eccentricity)
             
         #remove telemetry streams
         altitude.remove()
@@ -118,6 +130,7 @@ def fitness_func_adv(nets, config):
         telemetry_pitch.remove()
         telemetry_heading.remove()
         telemetry_roll.remove()
+        telemetry_speed.remove()
         apoapsis.remove()
         periapsis.remove()
         print(genome_id, fitness)
@@ -191,7 +204,7 @@ if __name__ == '__main__':
     #p = return_population("10") # Saved
     
     for i in range(10):
-        winner = p.run(fitness_func_adv, 10) # Run
+        winner = p.run(fitness_func_adv, 5) # Run
         save_object(("a" + str(i) + "0"), p) # prefix as first argument
         winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
         save_object(("a" + str(i) + "0_best"), winner_net) # This saves the winner as "X0 - best" where X is current loop iter
