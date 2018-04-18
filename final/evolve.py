@@ -122,6 +122,7 @@ def fitness_func_adv(nets, config):
 def visualize_vessel(net):
 # Set up connections
     global connection
+    vessel = create_new_ship()
     altitude = connection.add_stream(getattr, vessel.flight(), 'mean_altitude')
     universal_time = connection.add_stream(getattr, connection.space_center, 'ut')
     telemetry_pitch = connection.add_stream(getattr, vessel.flight(), 'pitch')
@@ -165,7 +166,6 @@ def visualize_vessel(net):
 
         if current_altitude >= 70000:
             break
-    fitness = max_altiude
     # if reached_basic:
     #     fitness = get_altitude + delta_v(vessel)
     #remove telemetry streams
@@ -174,9 +174,6 @@ def visualize_vessel(net):
     telemetry_pitch.remove()
     telemetry_heading.remove()
     telemetry_roll.remove()
-    print(genome_id, fitness)
-    genome.fitness = fitness
-
 
 # times = 0
 
@@ -192,5 +189,10 @@ if __name__ == '__main__':
     for i in range(10):
         winner = p.run(fitness_func_adv, 10) # Run
         save_object((str(i) + "0"), p) # prefix as first argument
+        winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+        save_object((str(i) + "0 - best"), winner_net) # This saves the winner as "X0 - best" where X is current loop iter
 
-    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+    # To load and visualize a vessel
+    # loaded_net = return_population("NAME") # Replace NAME with object name
+    # visualize_vessel(loaded_net)
+
