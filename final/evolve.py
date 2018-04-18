@@ -66,6 +66,10 @@ def fitness_func_adv(nets, config):
         max_altiude = 0
         warnings = 0
         vessel.control.activate_next_stage()
+        starting_energy = (connection.space_center.g * vessel.mass *\
+                connection.space_center.bodies["Kerbin"].mass) /\
+                vessel.orbit.radius
+        print("energy: " + str(starting_energy))
         print("[" + str(universal_time()) + "]:\tLiftoff")
 
         reached_basic = False
@@ -75,12 +79,12 @@ def fitness_func_adv(nets, config):
             current_altitude = altitude()
             
             if (current_altitude - last_altitude < 1):
-                print("WARNING")
+                #print("WARNING")
                 warnings += 1
             else:
                 warnings = max(0, warnings - 1)
             if (warnings > 20):
-                print("FAILURE")
+                #print("FAILURE")
                 in_flight = False
             
             inputs = [current_altitude, telemetry_pitch(), telemetry_heading(), telemetry_roll()]
@@ -101,12 +105,12 @@ def fitness_func_adv(nets, config):
                 (connection.space_center.g * vessel.mass *\
                 connection.space_center.bodies["Kerbin"].mass) /\
                 vessel.orbit.radius
-                orbit_energy = orbit_energy / (10 ** 7)
+                orbit_energy = orbit_energy
                 reached_basic = True
                 break
         fitness = max_altiude
         if reached_basic:
-            fitness = (orbit_energy - starting_energy) + max_altiude
+            fitness = ((orbit_energy - starting_energy) / (10 ** 3)) + max_altiude
             
         #remove telemetry streams
         altitude.remove()
@@ -183,16 +187,15 @@ if __name__ == '__main__':
     #connect
     connection = krpc.connect()
     print("connected")
-    #p = new_pop()
-    p = return_population("10") # Saved
+    p = new_pop()
+    #p = return_population("10") # Saved
     
     for i in range(10):
         winner = p.run(fitness_func_adv, 10) # Run
-        save_object((str(i) + "0"), p) # prefix as first argument
+        save_object(("a" + str(i) + "0"), p) # prefix as first argument
         winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
-        save_object((str(i) + "0 - best"), winner_net) # This saves the winner as "X0 - best" where X is current loop iter
+        save_object(("a" + str(i) + "0_best"), winner_net) # This saves the winner as "X0 - best" where X is current loop iter
 
     # To load and visualize a vessel
     # loaded_net = return_population("NAME") # Replace NAME with object name
     # visualize_vessel(loaded_net)
-
