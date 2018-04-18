@@ -1,17 +1,17 @@
-#--- Parameters for the Jyro Simulator ---#
+#--- Parameters for the KSP ---#
 
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = 1000
-pop_size              = 150
+fitness_threshold     = 1000000000
+pop_size              = 10
 reset_on_extinction   = False
 
 [DefaultGenome]
-num_inputs              = 6
+num_inputs              = 4
 num_hidden              = 0
-num_outputs             = 5
+num_outputs             = 4
 initial_connection      = partial 0.5
-feed_forward            = False
+feed_forward            = True
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 1.0
 conn_add_prob           = 0.15
