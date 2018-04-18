@@ -2,6 +2,7 @@ import neat
 import copy
 import pickle
 import krpc
+import time
 
 def create_new_ship():
     global connection
@@ -61,6 +62,8 @@ def fitness_func(nets, config):
             vessel.control.roll = actions[3]
 
             max_altiude = max(current_altitude, max_altiude)
+
+            time.sleep(0.10)
 
             if current_altitude >= 70000:
                 break
