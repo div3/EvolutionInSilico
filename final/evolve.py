@@ -76,7 +76,7 @@ def fitness_func(nets, config):
         telemetry_pitch.remove()
         telemetry_heading.remove()
         telemetry_roll.remove()
-
+        print(genome_id, fitness)
         genome.fitness = fitness
 
 config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
