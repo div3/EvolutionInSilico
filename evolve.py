@@ -42,14 +42,13 @@ def fitness_func(nets, config):
         while in_flight and ((universal_time() - launch_time) < 200):
             # Error Check for crash
             current_altitude = altitude()
-            last_altitude = current_altitude + 5
 
-            if (current_altitude - last_altitude < 5):
+            if (current_altitude - last_altitude < 2):
                 print("WARNING")
                 warnings += 1
             else:
                 warnings = max(0, warnings - 1)
-            if (warnings > 10):
+            if (warnings > 20):
                 print("FAILURE")
                 in_flight = False
             
