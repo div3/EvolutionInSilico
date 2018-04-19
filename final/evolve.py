@@ -70,7 +70,7 @@ def fitness_func_sub70(nets, config):
         launch_time = universal_time()
         starting_fuel = vessel.resources.amount('LiquidFuel')
         last_altitude = altitude()
-        max_altiude = 0
+        max_altitude = 0
         warnings = 0
         vessel.control.activate_next_stage()
         starting_energy = (connection.space_center.g * vessel.mass *\
@@ -107,7 +107,7 @@ def fitness_func_sub70(nets, config):
             vessel.control.yaw = actions[2]
             vessel.control.roll = actions[3]
 
-            max_altiude = max(current_altitude, max_altiude)
+            max_altitude = max(current_altitude, max_altitude)
             last_altitude = current_altitude
 
             time.sleep(0.10)
@@ -160,7 +160,7 @@ def fitness_func_adv(nets, config):
         launch_time = universal_time()
         starting_fuel = vessel.resources.amount('LiquidFuel')
         last_altitude = altitude()
-        max_altiude = 0
+        max_altitude = 0
         warnings = 0
         vessel.control.activate_next_stage()
         starting_energy = (connection.space_center.g * vessel.mass *\
@@ -197,7 +197,7 @@ def fitness_func_adv(nets, config):
             vessel.control.yaw = actions[2]
             vessel.control.roll = actions[3]
 
-            max_altiude = max(current_altitude, max_altiude)
+            max_altitude = max(current_altitude, max_altitude)
             last_altitude = current_altitude
 
             time.sleep(0.10)
@@ -211,9 +211,9 @@ def fitness_func_adv(nets, config):
                 reached_basic = True
                 break
         fuel_used = starting_fuel - vessel.resources.amount('LiquidFuel')
-        fitness = max_altiude
+        fitness = max_altitude
         if reached_basic:
-            fitness = ((orbit_energy - starting_energy) / (10 ** 3)) + max_altiude
+            fitness = ((orbit_energy - starting_energy) / (10 ** 3)) + max_altitude
         fitness = fitness / (1 + (3 * vessel.orbit.eccentricity))
             
         #remove telemetry streams
