@@ -5,7 +5,7 @@ import krpc
 import time
 
 def new_pop():
-    # Creates a new population p
+'''Creates a new Population p '''
     p = neat.Population(config)
     # Add statistics to pretty print progress
     p.add_reporter(neat.StdOutReporter(True))
@@ -13,7 +13,7 @@ def new_pop():
     p.add_reporter(stats)
     return p
 
-
+'''Code to save, return and delete populations using pickle'''
 def save_object(prefix, pop):
     pickle.dump(copy.deepcopy(p), open(prefix + '.pkl', 'wb'))
 def return_population(prefix):
@@ -25,6 +25,7 @@ def delete_population(prefix):
     except FileNotFoundError:
         print('Not found')
 
+'''Creates a new ship using the global connection established in main'''
 def create_new_ship():
     global connection
     print("========== New Voyage ===========")
@@ -36,13 +37,8 @@ def create_new_ship():
     vessel.control.throttle = 0.10
     return vessel
 
-
-config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                     neat.DefaultSpeciesSet, neat.DefaultStagnation, 
-                     'config.txt')
-
+'''Fitness function to optimize flight for sub-70k meters.'''
 def fitness_func_sub70(nets, config):
-    # global times
     # For each genome in 'nets' create a Neural Network
     global connection
     for genome_id, genome in nets:
@@ -51,22 +47,18 @@ def fitness_func_sub70(nets, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         vessel = create_new_ship() # Create a new ship
         
-        # Set up connections
+        # Set up connections for variables
         altitude = connection.add_stream(getattr, vessel.flight(), 'mean_altitude')
         universal_time = connection.add_stream(getattr, connection.space_center, 'ut')
         telemetry_pitch = connection.add_stream(getattr, vessel.flight(), 'pitch')
         telemetry_heading = connection.add_stream(getattr, vessel.flight(), 'heading')
         telemetry_roll = connection.add_stream(getattr, vessel.flight(), 'roll')
-
         srf = vessel.orbit.body.reference_frame
         telemetry_speed = connection.add_stream(getattr, vessel.flight(srf), 'speed')
-        
-
         apoapsis = connection.add_stream(getattr, vessel.orbit, "apoapsis_altitude")
         periapsis = connection.add_stream(getattr, vessel.orbit, "periapsis_altitude")
-
         
-        
+        # Set up variables
         launch_time = universal_time()
         starting_fuel = vessel.resources.amount('LiquidFuel')
         last_altitude = altitude()
@@ -88,12 +80,12 @@ def fitness_func_sub70(nets, config):
             warning_rate = current_altitude - last_altitude
             #print(warning_rate)
             if (warning_rate < 1):
-                #print("WARNING")
+                # print("WARNING")
                 warnings += max(1, abs(warning_rate))
             else:
                 warnings = max(0, warnings - warning_rate)
             if (warnings > 60):
-                #print("FAILURE")
+                # print("FAILURE")
                 in_flight = False
             
             inputs = [current_altitude,\
@@ -113,11 +105,12 @@ def fitness_func_sub70(nets, config):
             last_altitude = current_altitude
 
             time.sleep(0.10)
-
+            # Break if altitude is greater than 70k
             if (current_altitude > 70000):
                 in_flight = False
                 reached_basic = True
                 break
+        # Use fuel used to measure fitness
         fuel_used = starting_fuel - vessel.resources.amount('LiquidFuel')
         fitness = max_altitude / (2 ** (fuel_used / starting_fuel))
             
@@ -133,6 +126,7 @@ def fitness_func_sub70(nets, config):
         print(genome_id, fitness)
         genome.fitness = fitness
 
+'''Fitness functions for greater than 70k flight'''
 def fitness_func_adv(nets, config):
     # global times
     # For each genome in 'nets' create a Neural Network
@@ -149,15 +143,10 @@ def fitness_func_adv(nets, config):
         telemetry_pitch = connection.add_stream(getattr, vessel.flight(), 'pitch')
         telemetry_heading = connection.add_stream(getattr, vessel.flight(), 'heading')
         telemetry_roll = connection.add_stream(getattr, vessel.flight(), 'roll')
-
         srf = vessel.orbit.body.reference_frame
         telemetry_speed = connection.add_stream(getattr, vessel.flight(srf), 'speed')
-        
-
         apoapsis = connection.add_stream(getattr, vessel.orbit, "apoapsis_altitude")
         periapsis = connection.add_stream(getattr, vessel.orbit, "periapsis_altitude")
-
-        
         
         launch_time = universal_time()
         starting_fuel = vessel.resources.amount('LiquidFuel')
@@ -212,6 +201,8 @@ def fitness_func_adv(nets, config):
                 orbit_energy = orbit_energy
                 reached_basic = True
                 break
+
+        # Use the orbit energy to measure fitness
         fuel_used = starting_fuel - vessel.resources.amount('LiquidFuel')
         fitness = max_altitude
         if reached_basic:
@@ -230,6 +221,7 @@ def fitness_func_adv(nets, config):
         print(genome_id, fitness)
         genome.fitness = fitness
 
+'''Visualize a particular net'''
 def visualize_vessel(net):
 # Set up connections
     global connection
@@ -277,32 +269,32 @@ def visualize_vessel(net):
 
         if current_altitude >= 70000:
             break
-    # if reached_basic:
-    #     fitness = get_altitude + delta_v(vessel)
-    #remove telemetry streams
+
     altitude.remove()
     universal_time.remove()
     telemetry_pitch.remove()
     telemetry_heading.remove()
     telemetry_roll.remove()
 
-# times = 0
+'''Global Config variable'''
+config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                     neat.DefaultSpeciesSet, neat.DefaultStagnation, 
+                     'config.txt')
 
-# Change prefix before running to avoid overwriting.
 if __name__ == '__main__':
     print("running...")
-    #connect
+    # connect
     connection = krpc.connect()
     print("connected")
     p = new_pop()
-    #p = return_population("a30") # Saved
     
+    # Run the fitness function and save the population every 5 turns
     for i in range(15):
         winner = p.run(fitness_func_sub70, 5) # Run
         save_object(("a" + str(i) + "0"), p) # prefix as first argument
-        winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+        winner_net = neat.nn.FeedForwardNetwork.create(winner, config) # Gets the fittest from the population
         save_object(("a" + str(i) + "0_best"), winner_net) # This saves the winner as "X0 - best" where X is current loop iter
 
-    # To load and visualize a vessel
+    # # To load and visualize a vessel - uncomment below and comment out above
     # loaded_net = return_population("NAME") # Replace NAME with object name
     # visualize_vessel(loaded_net)
