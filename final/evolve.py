@@ -84,13 +84,15 @@ def fitness_func_sub70(nets, config):
         while in_flight and ((universal_time() - launch_time) < 200):
             # Error Check for crash
             current_altitude = altitude()
-            
-            if (current_altitude - last_altitude < 1):
+
+            warning_rate = current_altitude - last_altitude
+            #print(warning_rate)
+            if (warning_rate < 1):
                 #print("WARNING")
-                warnings += 1
+                warnings += max(1, abs(warning_rate))
             else:
-                warnings = max(0, warnings - 1)
-            if (warnings > 20):
+                warnings = max(0, warnings - warning_rate)
+            if (warnings > 60):
                 #print("FAILURE")
                 in_flight = False
             
@@ -102,10 +104,10 @@ def fitness_func_sub70(nets, config):
             
             actions = net.activate(inputs) # Activate using inputs
             #perform actions
-            vessel.control.throttle = actions[0]
-            vessel.control.pitch = actions[1]
-            vessel.control.yaw = actions[2]
-            vessel.control.roll = actions[3]
+            vessel.control.throttle = ((actions[0] / 60.0) + 0.5)
+            vessel.control.pitch = (actions[1] / 30.0)
+            vessel.control.yaw = (actions[2] / 30.0)
+            vessel.control.roll = (actions[3] / 30.0)
 
             max_altitude = max(current_altitude, max_altitude)
             last_altitude = current_altitude
@@ -117,7 +119,7 @@ def fitness_func_sub70(nets, config):
                 reached_basic = True
                 break
         fuel_used = starting_fuel - vessel.resources.amount('LiquidFuel')
-        fitness = max_altitude / (fuel_used / starting_fuel)
+        fitness = max_altitude / (2 ** (fuel_used / starting_fuel))
             
         #remove telemetry streams
         altitude.remove()
@@ -293,9 +295,9 @@ if __name__ == '__main__':
     connection = krpc.connect()
     print("connected")
     p = new_pop()
-    #p = return_population("a00") # Saved
+    #p = return_population("a30") # Saved
     
-    for i in range(10):
+    for i in range(15):
         winner = p.run(fitness_func_sub70, 5) # Run
         save_object(("a" + str(i) + "0"), p) # prefix as first argument
         winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
